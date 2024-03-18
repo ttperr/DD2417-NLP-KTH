@@ -54,11 +54,11 @@ And if we extract all the trees we get:
 
 > Each of these dependency trees has one edge which is incorrect. Decide which one, and explain how it should be drawn instead.
 
-In the *a* tree, the root edge is incorrect. It should be drawn from *ROOT* to *wanted* and not the opposite.
+In the **a** tree, the root edge is incorrect. It should be drawn from **ROOT** to **wanted** and not the opposite.
 
-In the *b* tree, the edge from *lasted* to *The* is incorrect. It should be drawn from *meeting* to *The*.
+In the **b** tree, the edge from **lasted** to **The** is incorrect. It should be drawn from **meeting** to **The**.
 
-In the *c* tree, the edge from *gave* to *brother* is incorrect. It should be drawn from *gave* to *book*.
+In the **c** tree, the edge from **gave** to **brother** is incorrect. It should be drawn from **gave** to **book**.
 
 > Below is a correct dependency tree, but with the labels missing. For each of the labels 1–7, determine the appropriate relation label.
 
