@@ -1,6 +1,6 @@
 S -> NP,VP
 NP -> JJ,NP
-NP -> NP, PP
+NP -> NP,PP
 NP -> giant
 NP -> cuts
 NP -> welfare

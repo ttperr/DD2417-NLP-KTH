@@ -1,0 +1,14 @@
+S -> NP,VP
+NP -> DA,NOO
+DA -> Det,Adj
+NP -> Adj,NP
+NP-> Det,NP
+VP -> V,NP
+Det -> the
+NP -> faces
+NP -> suspect
+Adj -> suspect
+NP -> pressure
+Adj -> increased
+V -> faces
+V -> increased

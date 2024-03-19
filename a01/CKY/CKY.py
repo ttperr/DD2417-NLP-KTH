@@ -73,7 +73,23 @@ class CKY:
         #
         #  YOUR CODE HERE
         #
-        pass
+        self.table = [[[] for _ in range(len(self.words))]
+                      for _ in range(len(self.words))]
+        self.backptr = [[[] for _ in range(len(self.words))]
+                        for _ in range(len(self.words))]
+
+        for j in range(len(self.words)):
+            self.table[j][j] = self.unary_rules.get(self.words[j], [])
+
+        for i in range(1, len(self.words)):
+            for j in range(i-1, -1, -1):
+                for k in range(j, i):
+                    for X in self.table[j][k]:
+                        for Y in self.table[k+1][i]:
+                            if X in self.binary_rules and Y in self.binary_rules[X]:
+                                for Z in self.binary_rules[X][Y]:
+                                    self.table[j][i].append(Z)
+                                    self.backptr[j][i].append((k, X, Y))
 
     # Prints the parse table
     def print_table(self):

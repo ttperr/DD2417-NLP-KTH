@@ -40,8 +40,8 @@ Det → the            V → increased
 
 | the | suspect | faces | increased | pressure |
 | --- | ------- | ----- | --------- | -------- |
-| Det | NP DA   | NP    | DA        | S NP     |
-|     | Adj NP  | NP    |           | S NP     |
+| Det | NP DA   | NP    |           | S S      |
+|     | Adj NP  | NP    |           | S S      |
 |     |         | V NP  |           | VP S     |
 |     |         |       | Adj V     | NP VP    |
 |     |         |       |           | NP       |
