@@ -80,16 +80,14 @@ class CKY:
 
         for j in range(len(self.words)):
             self.table[j][j] = self.unary_rules.get(self.words[j], [])
-
-        for i in range(1, len(self.words)):
-            for j in range(i-1, -1, -1):
-                for k in range(j, i):
-                    for X in self.table[j][k]:
-                        for Y in self.table[k+1][i]:
-                            if X in self.binary_rules and Y in self.binary_rules[X]:
-                                for Z in self.binary_rules[X][Y]:
-                                    self.table[j][i].append(Z)
-                                    self.backptr[j][i].append((k, X, Y))
+            for i in range(j-1, -1, -1):
+                for k in range(i+1, j+1):
+                    for B in self.table[i][k-1]:
+                        for C in self.table[k][j]:
+                            if B in self.binary_rules and C in self.binary_rules[B]:
+                                for A in self.binary_rules[B][C]:
+                                    self.table[i][j].append(A)
+                                    self.backptr[i][j].append((A, k, B, C))
 
     # Prints the parse table
     def print_table(self):
@@ -99,11 +97,26 @@ class CKY:
 
     # Prints all parse trees derivable from cell in row 'row' and
     # column 'column', rooted with the symbol 'symbol'
-    def print_trees(self, row, column, symbol):
+    def print_trees(self, row, column, symbol, first_call=True):
         #
         #  YOUR CODE HERE
         #
-        pass
+        if row == column:
+            return [f"{symbol}({self.words[row]})"]
+        trees = []
+        for A, k, B, C in self.backptr[row][column]:
+            if A == symbol:
+                left_trees = self.print_trees(row, k-1, B, False)
+                right_trees = self.print_trees(k, column, C, False)
+                for left in left_trees:
+                    for right in right_trees:
+                        trees.append(f"{A}({left}, {right})")
+        if first_call:
+            trees = list(set(trees))
+            for tree in trees:
+                print(tree)
+        else:
+            return trees
 
 
 def main():
@@ -128,7 +141,7 @@ def main():
     if arguments.print_parsetable:
         cky.print_table()
     if arguments.print_trees:
-        cky.print_trees(len(cky.words)-1, 0, arguments.symbol)
+        cky.print_trees(0, len(cky.words)-1, arguments.symbol)
 
 
 if __name__ == '__main__':

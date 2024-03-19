@@ -40,9 +40,9 @@ Det → the            V → increased
 
 | the | suspect | faces | increased | pressure |
 | --- | ------- | ----- | --------- | -------- |
-| Det | NP DA   | NP    |           | S S      |
-|     | Adj NP  | NP    |           | S S      |
-|     |         | V NP  |           | VP S     |
+| Det | NP DA   | NP NP |           | S S S    |
+|     | NP Adj  | NP    |           | S S      |
+|     |         | NP V  |           | S VP     |
 |     |         |       | Adj V     | NP VP    |
 |     |         |       |           | NP       |
 
@@ -51,6 +51,8 @@ And if we extract all the trees we get:
 ![CKY tree 1](graph/2-CKY-tree-1.svg)
 
 ![CKY tree 2](graph/2-CKY-tree-2.svg)
+
+![CKY tree 3](graph/2-CKY-tree-3.svg)
 
 > Each of these dependency trees has one edge which is incorrect. Decide which one, and explain how it should be drawn instead.
 

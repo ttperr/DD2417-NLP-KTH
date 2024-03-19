@@ -1,8 +1,8 @@
 S -> NP,VP
-NP -> DA,NOO
+NP -> DA,NP
 DA -> Det,Adj
 NP -> Adj,NP
-NP-> Det,NP
+NP -> Det,NP
 VP -> V,NP
 Det -> the
 NP -> faces
