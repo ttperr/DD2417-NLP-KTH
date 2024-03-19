@@ -102,6 +102,13 @@ class Parser:
 
         # YOUR CODE HERE
 
+        if i < len(pred_tree):
+            moves.append(Parser.SH)
+        if len(stack) > 2 and pred_tree[stack[-2]] == 0:
+            moves.append(Parser.LA)
+        if len(stack) > 1 and pred_tree[stack[-1]] == 0:
+            moves.append(Parser.RA)
+
         return moves
 
     def move(self, i, stack, pred_tree, move):
@@ -122,6 +129,16 @@ class Parser:
         """
 
         # YOUR CODE HERE
+
+        if move == self.SH:
+            stack.append(i)
+            i += 1
+        elif move == self.LA:
+            pred_tree[stack[-2]] = stack[-1]
+            stack.pop(-2)
+        elif move == self.RA:
+            pred_tree[stack[-1]] = stack[-2] if len(stack) > 1 else 0
+            stack.pop()
 
         return i, stack, pred_tree
 
@@ -161,6 +178,14 @@ class Parser:
         assert len(pred_tree) == len(correct_tree)
 
         # YOUR CODE HERE
+
+        if len(stack) >= 2:
+            if correct_tree[stack[-2]] == stack[-1]:
+                return self.LA
+            if correct_tree[stack[-1]] == stack[-2] and (i == len(correct_tree) or correct_tree[i] == stack[-1]):
+                return self.RA
+        if i < len(correct_tree):
+            return self.SH
 
         return None
 
