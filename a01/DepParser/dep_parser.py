@@ -182,7 +182,7 @@ class Parser:
         if len(stack) >= 2:
             if correct_tree[stack[-2]] == stack[-1]:
                 return self.LA
-            if correct_tree[stack[-1]] == stack[-2] and (i == len(correct_tree) or correct_tree[i] == stack[-1]):
+            if correct_tree[stack[-1]] == stack[-2] and stack[-1] not in correct_tree[i:]:
                 return self.RA
         if i < len(correct_tree):
             return self.SH
