@@ -112,11 +112,9 @@ class CKY:
                     for right in right_trees:
                         trees.append(f"{A}({left}, {right})")
         if first_call:
-            trees = list(set(trees))
             for tree in trees:
                 print(tree)
-        else:
-            return trees
+        return trees
 
 
 def main():
