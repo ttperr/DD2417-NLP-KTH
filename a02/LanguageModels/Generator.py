@@ -9,12 +9,14 @@ This file is part of the computer assignments for the course DD2417 Language eng
 Created 2018 by Johan Boye and Patrik Jonell.
 """
 
-class Generator(object) :
+
+class Generator(object):
     """
     This class generates words from a language model.
     """
+
     def __init__(self):
-    
+
         # The mapping from words to identifiers.
         self.index = {}
 
@@ -34,7 +36,7 @@ class Generator(object) :
         self.total_words = 0
 
         # The average log-probability (= the estimation of the entropy) of the test corpus.
-        self.logProb = 0
+        self.log_prob = 0
 
         # The identifier of the previous word processed in the test corpus. Is -1 if the last word was unknown.
         self.last_index = -1
@@ -51,8 +53,7 @@ class Generator(object) :
         # The number of words processed in the test corpus.
         self.test_words_processed = 0
 
-
-    def read_model(self,filename):
+    def read_model(self, filename):
         """
         Reads the contents of the language model file into the appropriate data structures.
 
@@ -62,8 +63,25 @@ class Generator(object) :
 
         try:
             with codecs.open(filename, 'r', 'utf-8') as f:
-                self.unique_words, self.total_words = map(int, f.readline().strip().split(' '))
+                self.unique_words, self.total_words = map(
+                    int, f.readline().strip().split(' '))
                 # YOUR CODE HERE
+                # Read the unigram counts
+                for _ in range(self.unique_words):
+                    index, word, count = f.readline().strip().split(' ')
+                    self.index[word] = int(index)
+                    self.word[int(index)] = word
+                    self.unigram_count[int(index)] = int(count)
+
+                # Read the bigram probabilities
+                while True:
+                    line = f.readline().strip()
+                    if line == '-1' or line == '':
+                        break
+                    index1, index2, log_prob = line.split(' ')
+                    self.bigram_prob[int(index1)][int(
+                        index2)] = float(log_prob)
+
                 return True
         except IOError:
             print("Couldn't find bigram probabilities file {}".format(filename))
@@ -73,9 +91,29 @@ class Generator(object) :
         """
         Generates and prints n words, starting with the word w, and sampling from the distribution
         of the language model.
-        """ 
+        """
         # YOUR CODE HERE
-        pass
+
+        w = w.lower().strip()
+
+        # Get the index of the starting word
+        try:
+            index = self.index[w]
+        except KeyError:
+            print("Word not found in the language model")
+            return
+        print(self.word[index], end=' ')
+
+        # Generate n words
+        for _ in range(n-1):
+            bigram = self.bigram_prob[index]
+            index = -1
+            index = random.choices(list(bigram.keys()), weights=[
+                math.exp(bigram[i]) for i in bigram.keys()])[0]
+            if index == -1:
+                index = random.choice(list(self.index.keys()))
+            print(self.word[index], end=' ')
+        print()
 
 
 def main():
@@ -83,15 +121,18 @@ def main():
     Parse command line arguments
     """
     parser = argparse.ArgumentParser(description='BigramTester')
-    parser.add_argument('--file', '-f', type=str,  required=True, help='file with language model')
-    parser.add_argument('--start', '-s', type=str, required=True, help='starting word')
+    parser.add_argument('--file', '-f', type=str,
+                        required=True, help='file with language model')
+    parser.add_argument('--start', '-s', type=str,
+                        required=True, help='starting word')
     parser.add_argument('--number_of_words', '-n', type=int, default=100)
 
     arguments = parser.parse_args()
 
     generator = Generator()
     generator.read_model(arguments.file)
-    generator.generate(arguments.start,arguments.number_of_words)
+    generator.generate(arguments.start, arguments.number_of_words)
+
 
 if __name__ == "__main__":
     main()
