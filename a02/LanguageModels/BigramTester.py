@@ -66,6 +66,22 @@ class BigramTester(object):
                 self.unique_words, self.total_words = map(
                     int, f.readline().strip().split(' '))
                 # YOUR CODE HERE
+                # Read the unigram counts
+                for _ in range(self.unique_words):
+                    index, word, count = f.readline().strip().split(' ')
+                    self.index[word] = int(index)
+                    self.word[int(index)] = word
+                    self.unigram_count[int(index)] = int(count)
+
+                # Read the bigram probabilities
+                while True:
+                    line = f.readline().strip()
+                    if line == '-1' or line == '':
+                        break
+                    index1, index2, log_prob = line.split(' ')
+                    self.bigram_prob[int(index1)][int(
+                        index2)] = float(log_prob)
+
                 return True
         except IOError:
             print("Couldn't find bigram probabilities file {}".format(filename))
@@ -73,7 +89,27 @@ class BigramTester(object):
 
     def compute_entropy_cumulatively(self, word):
         # YOUR CODE HERE
-        pass
+
+        try:
+            # Get the index of the word
+            index = self.index[word]
+            unigram_prob = self.unigram_count[index] / self.total_words
+        except KeyError:
+            # If the word is unknown, the index is -1
+            index = -1
+            unigram_prob = 0.0
+
+        # If the bigram probability is not in the dictionary, it is 0.
+        bigram_prob = 0.0
+        if index in self.bigram_prob[self.last_index]:
+            bigram_prob = math.exp(self.bigram_prob[self.last_index][index])
+
+        # Update the average log-probability
+        self.log_prob -= math.log(self.lambda1 * bigram_prob +
+                                  self.lambda2 * unigram_prob + self.lambda3) / len(self.tokens)
+
+        self.test_words_processed += 1
+        self.last_index = index
 
     def process_test_file(self, test_filename):
         """
