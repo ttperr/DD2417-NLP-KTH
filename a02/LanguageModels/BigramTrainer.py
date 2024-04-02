@@ -25,7 +25,7 @@ class BigramTrainer(object):
         Processes the file f.
         """
         with codecs.open(f, 'r', 'utf-8') as text_file:
-            text = reader = text_file.read().encode('utf-8').decode().lower()
+            text = text_file.read().encode('utf-8').decode().lower()
         try:
             self.tokens = nltk.word_tokenize(text)
         except LookupError:

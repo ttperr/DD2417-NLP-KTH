@@ -10,6 +10,7 @@ This file is part of the computer assignments for the course DD2417 Language eng
 Created 2017 by Johan Boye and Patrik Jonell.
 """
 
+
 class BigramTester(object):
     def __init__(self):
         """
@@ -35,7 +36,7 @@ class BigramTester(object):
         self.total_words = 0
 
         # The average log-probability (= the estimation of the entropy) of the test corpus.
-        self.logProb = 0
+        self.log_prob = 0
 
         # The identifier of the previous word processed in the test corpus. Is -1 if the last word was unknown.
         self.last_index = -1
@@ -52,7 +53,6 @@ class BigramTester(object):
         # The number of words processed in the test corpus.
         self.test_words_processed = 0
 
-
     def read_model(self, filename):
         """
         Reads the contents of the language model file into the appropriate data structures.
@@ -63,13 +63,13 @@ class BigramTester(object):
 
         try:
             with codecs.open(filename, 'r', 'utf-8') as f:
-                self.unique_words, self.total_words = map(int, f.readline().strip().split(' '))
+                self.unique_words, self.total_words = map(
+                    int, f.readline().strip().split(' '))
                 # YOUR CODE HERE
                 return True
         except IOError:
             print("Couldn't find bigram probabilities file {}".format(filename))
             return False
-
 
     def compute_entropy_cumulatively(self, word):
         # YOUR CODE HERE
@@ -84,7 +84,7 @@ class BigramTester(object):
         """
         try:
             with codecs.open(test_filename, 'r', 'utf-8') as f:
-                self.tokens = nltk.word_tokenize(f.read().lower()) 
+                self.tokens = nltk.word_tokenize(f.read().lower())
                 for token in self.tokens:
                     self.compute_entropy_cumulatively(token)
             return True
@@ -98,15 +98,19 @@ def main():
     Parse command line arguments
     """
     parser = argparse.ArgumentParser(description='BigramTester')
-    parser.add_argument('--file', '-f', type=str,  required=True, help='file with language model')
-    parser.add_argument('--test_corpus', '-t', type=str, required=True, help='test corpus')
+    parser.add_argument('--file', '-f', type=str,
+                        required=True, help='file with language model')
+    parser.add_argument('--test_corpus', '-t', type=str,
+                        required=True, help='test corpus')
 
     arguments = parser.parse_args()
 
     bigram_tester = BigramTester()
     bigram_tester.read_model(arguments.file)
     bigram_tester.process_test_file(arguments.test_corpus)
-    print('Read {0:d} words. Estimated entropy: {1:.2f}'.format(bigram_tester.test_words_processed, bigram_tester.logProb))
+    print('Read {0:d} words. Estimated entropy: {1:.2f}'.format(
+        bigram_tester.test_words_processed, bigram_tester.log_prob))
+
 
 if __name__ == "__main__":
     main()
