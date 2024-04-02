@@ -1,13 +1,13 @@
 #  -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import codecs
+from collections import defaultdict
+import os
+import nltk
+import argparse
+import math
 import faulthandler
 faulthandler.enable()
-import math
-import argparse
-import nltk
-import os
-from collections import defaultdict
-import codecs
 
 """
 This file is part of the computer assignments for the course DD2417 Language Engineering at KTH.
@@ -26,14 +26,13 @@ class BigramTrainer(object):
         """
         with codecs.open(f, 'r', 'utf-8') as text_file:
             text = reader = text_file.read().encode('utf-8').decode().lower()
-        try :
-            self.tokens = nltk.word_tokenize(text) 
-        except LookupError :
+        try:
+            self.tokens = nltk.word_tokenize(text)
+        except LookupError:
             nltk.download('punkt')
             self.tokens = nltk.word_tokenize(text)
         for token in self.tokens:
             self.process_token(token)
-
 
     def process_token(self, token):
         """
@@ -44,6 +43,24 @@ class BigramTrainer(object):
         """
         # YOUR CODE HERE
 
+        # Update index and word
+        if token not in self.index:
+            index = len(self.index)
+            self.index[token] = index
+            self.word[index] = token
+            self.unique_words += 1
+        else:
+            index = self.index[token]
+
+        # Update unigram count
+        self.unigram_count[index] += 1
+        self.total_words += 1
+
+        # Update bigram count
+        if self.last_index != -1:
+            self.bigram_count[self.last_index][index] += 1
+
+        self.last_index = index
 
     def stats(self):
         """
@@ -52,6 +69,21 @@ class BigramTrainer(object):
         rows_to_print = []
 
         # YOUR CODE HERE
+
+        rows_to_print.append(str(self.unique_words) +
+                             ' ' + str(self.total_words))
+
+        for index in self.unigram_count:
+            rows_to_print.append(str(index) + ' ' + str(self.word[index]) +
+                                 ' ' + str(self.unigram_count[index]))
+
+        for index1 in self.bigram_count:
+            for index2 in self.bigram_count[index1]:
+                # Logarithm of the bigram probability rounded to 15 decimals
+                rows_to_print.append(f'{index1} {index2} {math.log(
+                    self.bigram_count[index1][index2] / self.unigram_count[index1]):.15f}')
+
+        rows_to_print.append(str(-1))
 
         return rows_to_print
 
@@ -94,8 +126,10 @@ def main():
     Parse command line arguments
     """
     parser = argparse.ArgumentParser(description='BigramTrainer')
-    parser.add_argument('--file', '-f', type=str,  required=True, help='file from which to build the language model')
-    parser.add_argument('--destination', '-d', type=str, help='file in which to store the language model')
+    parser.add_argument('--file', '-f', type=str,  required=True,
+                        help='file from which to build the language model')
+    parser.add_argument('--destination', '-d', type=str,
+                        help='file in which to store the language model')
 
     arguments = parser.parse_args()
 
@@ -105,10 +139,12 @@ def main():
 
     stats = bigram_trainer.stats()
     if arguments.destination:
-        with codecs.open(arguments.destination, 'w', 'utf-8' ) as f:
-            for row in stats: f.write(row + '\n')
+        with codecs.open(arguments.destination, 'w', 'utf-8') as f:
+            for row in stats:
+                f.write(row + '\n')
     else:
-        for row in stats: print(row)
+        for row in stats:
+            print(row)
 
 
 if __name__ == "__main__":
