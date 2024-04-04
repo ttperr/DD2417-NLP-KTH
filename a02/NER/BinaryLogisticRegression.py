@@ -9,6 +9,7 @@ This file is part of the computer assignments for the course DD1418/DD2418 Langu
 Created 2017 by Johan Boye, Patrik Jonell and Dmytro Kalpakchi.
 """
 
+
 class BinaryLogisticRegression(object):
     """
     This class performs binary logistic regression using batch gradient descent
@@ -17,13 +18,14 @@ class BinaryLogisticRegression(object):
 
     #  ------------- Hyperparameters ------------------ #
 
-    LEARNING_RATE = 0.01  # The learning rate.
+    LEARNING_RATE = 0.1  # The learning rate.
     CONVERGENCE_MARGIN = 0.001  # The convergence criterion.
-    MAX_ITERATIONS = 100 # Maximal number of passes through the datapoints in stochastic gradient descent.
-    MINIBATCH_SIZE = 1000 # Minibatch size (only for minibatch gradient descent)
+    # Maximal number of passes through the datapoints in stochastic gradient descent.
+    MAX_ITERATIONS = 100
+    # Minibatch size (only for minibatch gradient descent)
+    MINIBATCH_SIZE = 1000
 
     # ----------------------------------------------------------------------
-
 
     def __init__(self, x=None, y=None, theta=None):
         """
@@ -48,7 +50,8 @@ class BinaryLogisticRegression(object):
             self.FEATURES = len(x[0]) + 1
 
             # Encoding of the data points (as a DATAPOINTS x FEATURES size array).
-            self.x = np.concatenate((np.ones((self.DATAPOINTS, 1)), np.array(x)), axis=1)
+            self.x = np.concatenate(
+                (np.ones((self.DATAPOINTS, 1)), np.array(x)), axis=1)
 
             # Correct labels for the datapoints.
             self.y = np.array(y)
@@ -59,17 +62,13 @@ class BinaryLogisticRegression(object):
             # The current gradient.
             self.gradient = np.zeros(self.FEATURES)
 
-
-
     # ----------------------------------------------------------------------
-
 
     def sigmoid(self, z):
         """
         The logistic function.
         """
-        return 1.0 / ( 1 + np.exp(-z) )
-
+        return 1.0 / (1 + np.exp(-z))
 
     def conditional_prob(self, label, datapoint):
         """
@@ -77,9 +76,8 @@ class BinaryLogisticRegression(object):
         """
 
         # REPLACE THE COMMAND BELOW WITH YOUR CODE
-
-        return 0
-
+        prob = self.sigmoid(np.dot(self.theta, self.x[datapoint]))
+        return prob if label == 1 else 1 - prob
 
     def compute_gradient_for_all(self):
         """
@@ -88,16 +86,18 @@ class BinaryLogisticRegression(object):
         """
 
         # YOUR CODE HERE
-
+        self.gradient = np.dot(self.x.T, self.sigmoid(
+            np.dot(self.theta, self.x.T)) - self.y) / self.DATAPOINTS
 
     def compute_gradient_minibatch(self, minibatch):
         """
         Computes the gradient based on a minibatch
         (used for minibatch gradient descent).
         """
-        
-        # YOUR CODE HERE
 
+        # YOUR CODE HERE
+        self.gradient = np.dot(self.x[minibatch].T, self.sigmoid(
+            np.dot(self.theta, self.x[minibatch])) - self.y[minibatch]) / self.MINIBATCH_SIZE
 
     def compute_gradient(self, datapoint):
         """
@@ -106,7 +106,8 @@ class BinaryLogisticRegression(object):
         """
 
         # YOUR CODE HERE
-
+        self.gradient = np.dot(self.x[datapoint], self.sigmoid(
+            np.dot(self.theta, self.x[datapoint])) - self.y[datapoint])
 
     def stochastic_fit(self):
         """
@@ -116,7 +117,6 @@ class BinaryLogisticRegression(object):
 
         # YOUR CODE HERE
 
-
     def minibatch_fit(self):
         """
         Performs Mini-batch Gradient Descent.
@@ -125,7 +125,6 @@ class BinaryLogisticRegression(object):
 
         # YOUR CODE HERE
 
-
     def fit(self):
         """
         Performs Batch Gradient Descent
@@ -133,19 +132,25 @@ class BinaryLogisticRegression(object):
         self.init_plot(self.FEATURES)
 
         # YOUR CODE HERE
-
+        self.compute_gradient_for_all()
+        while np.any(np.abs(self.gradient) > self.CONVERGENCE_MARGIN):
+            self.theta -= self.LEARNING_RATE * self.gradient
+            self.update_plot(np.sum(np.square(self.gradient)))
+            self.compute_gradient_for_all()
 
     def classify_datapoints(self, test_data, test_labels):
         """
         Classifies datapoints
         """
-        print('Model parameters:');
+        print('Model parameters:')
 
-        print('  '.join('{:d}: {:.4f}'.format(k, self.theta[k]) for k in range(self.FEATURES)))
+        print('  '.join('{:d}: {:.4f}'.format(
+            k, self.theta[k]) for k in range(self.FEATURES)))
 
         self.DATAPOINTS = len(test_data)
 
-        self.x = np.concatenate((np.ones((self.DATAPOINTS, 1)), np.array(test_data)), axis=1)
+        self.x = np.concatenate(
+            (np.ones((self.DATAPOINTS, 1)), np.array(test_data)), axis=1)
         self.y = np.array(test_labels)
         confusion = np.zeros((self.FEATURES, self.FEATURES))
 
@@ -162,13 +167,12 @@ class BinaryLogisticRegression(object):
                 print('Predicted class: {:2d} '.format(i), end='')
             else:
                 print('                 {:2d} '.format(i), end='')
-            print(' '.join('{:>8.3f}'.format(confusion[i][j]) for j in range(2)))
-
+            print(' '.join('{:>8.3f}'.format(
+                confusion[i][j]) for j in range(2)))
 
     def print_result(self):
         print(' '.join(['{:.2f}'.format(x) for x in self.theta]))
         print(' '.join(['{:.2f}'.format(x) for x in self.gradient]))
-
 
     # ----------------------------------------------------------------------
 
@@ -192,7 +196,6 @@ class BinaryLogisticRegression(object):
         plt.draw()
         plt.pause(1e-20)
 
-
     def init_plot(self, num_axes):
         """
         num_axes is the number of variables that should be plotted.
@@ -201,12 +204,13 @@ class BinaryLogisticRegression(object):
         self.val = []
         plt.ion()
         self.axes = plt.gca()
-        self.lines =[]
+        self.lines = []
 
         for i in range(num_axes):
             self.val.append([])
             self.lines.append([])
-            self.lines[i], = self.axes.plot([], self.val[0], '-', c=[random.random() for _ in range(3)], linewidth=1.5, markersize=4)
+            self.lines[i], = self.axes.plot(
+                [], self.val[0], '-', c=[random.random() for _ in range(3)], linewidth=1.5, markersize=4)
 
     # ----------------------------------------------------------------------
 
@@ -216,9 +220,9 @@ def main():
     Tests the code on a toy example.
     """
     x = [
-        [ 1,1 ], [ 0,0 ], [ 1,0 ], [ 0,0 ], [ 0,0 ], [ 0,0 ],
-        [ 0,0 ], [ 0,0 ], [ 1,1 ], [ 0,0 ], [ 0,0 ], [ 1,0 ],
-        [ 1,0 ], [ 0,0 ], [ 1,1 ], [ 0,0 ], [ 1,0 ], [ 0,0 ]
+        [1, 1], [0, 0], [1, 0], [0, 0], [0, 0], [0, 0],
+        [0, 0], [0, 0], [1, 1], [0, 0], [0, 0], [1, 0],
+        [1, 0], [0, 0], [1, 1], [0, 0], [1, 0], [0, 0]
     ]
 
     #  Encoding of the correct classes for the training material
