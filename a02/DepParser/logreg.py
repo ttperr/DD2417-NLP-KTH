@@ -30,7 +30,7 @@ class LogisticRegression(object):
 
         #  ------------- Hyperparameters ------------------ #
         self.LEARNING_RATE = 0.1            # The learning rate.
-        self.MINIBATCH_SIZE = 6           # Minibatch size
+        self.MINIBATCH_SIZE = 256           # Minibatch size
         # A max number of consequent epochs with monotonously
         self.PATIENCE = 5
         # increasing validation loss for declaring overfitting

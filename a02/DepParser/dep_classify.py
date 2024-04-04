@@ -9,6 +9,7 @@ class TreeConstructor:
     """
     This class builds dependency trees and evaluates using unlabeled arc score (UAS) and sentence-level accuracy
     """
+
     def __init__(self, parser):
         self.__parser = parser
 
@@ -16,7 +17,7 @@ class TreeConstructor:
         """
         Build the dependency tree using the logistic regression model `model` for the sentence containing
         `words` pos-tagged by `tags`
-        
+
         :param      model:  The logistic regression model
         :param      words:  The words of the sentence
         :param      tags:   The POS-tags for the words of the sentence
@@ -30,7 +31,7 @@ class TreeConstructor:
     def evaluate(self, model, test_file, ds):
         """
         Evaluate the model on the test file `test_file` using the feature representation given by the dataset `ds`
-        
+
         :param      model:      The model to be evaluated
         :param      test_file:  The CONLL-U test file
         :param      ds:         Training dataset instance having the feature maps
@@ -59,14 +60,14 @@ if __name__ == '__main__':
         lr = LogisticRegression()
         lr.fit(*ds.to_arrays())
         pickle.dump(lr, open('model.pkl', 'wb'))
-    
+
     # Create test dataset
     test_ds = p.create_dataset("en-ud-dev-projective.conllu")
     # Copy feature maps to ensure that test datapoints are encoded in the same way
     test_ds.copy_feature_maps(ds)
     # Compute move-level accuracy
     lr.classify_datapoints(*test_ds.to_arrays())
-    
+
     # Compute UAS and sentence-level accuracy
     t = TreeConstructor(p)
     t.evaluate(lr, 'en-ud-dev-projective.conllu', ds)
