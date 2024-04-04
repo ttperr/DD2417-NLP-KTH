@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 This file is part of the computer assignments for the course DD2418 Language engineering at KTH.
 Created 2019 by Dmytro Kalpakchi.
 """
+
+
 class LogisticRegression(object):
     """
     This class performs logistic regression using batch gradient descent
@@ -28,11 +30,11 @@ class LogisticRegression(object):
 
         #  ------------- Hyperparameters ------------------ #
         self.LEARNING_RATE = 0.1            # The learning rate.
-        self.MINIBATCH_SIZE = 256           # Minibatch size
-        self.PATIENCE = 5                   # A max number of consequent epochs with monotonously
-                                            # increasing validation loss for declaring overfitting
-        # ---------------------------------------------------------------------- 
-
+        self.MINIBATCH_SIZE = 6           # Minibatch size
+        # A max number of consequent epochs with monotonously
+        self.PATIENCE = 5
+        # increasing validation loss for declaring overfitting
+        # ----------------------------------------------------------------------
 
     def init_params(self, x, y):
         """
@@ -48,7 +50,8 @@ class LogisticRegression(object):
         self.CLASSES = len(np.unique(y))
 
         # Training data is stored in self.x (with a bias term) and self.y
-        self.x, self.y, self.xv, self.yv = self.train_validation_split(np.concatenate((np.ones((len(x), 1)), x), axis=1), y)
+        self.x, self.y, self.xv, self.yv = self.train_validation_split(
+            np.concatenate((np.ones((len(x), 1)), x), axis=1), y)
 
         # Number of datapoints.
         self.TRAINING_DATAPOINTS = len(self.x)
@@ -60,10 +63,8 @@ class LogisticRegression(object):
         # The current gradient.
         self.gradient = np.zeros((self.FEATURES, self.CLASSES))
 
-
         print("NUMBER OF DATAPOINTS: {}".format(self.TRAINING_DATAPOINTS))
         print("NUMBER OF CLASSES: {}".format(self.CLASSES))
-
 
     def train_validation_split(self, x, y, ratio=0.9):
         """
@@ -77,8 +78,14 @@ class LogisticRegression(object):
         #
         # YOUR CODE HERE
         #
-        return [], [], [], []
+        indices = np.random.choice(len(x), int(len(x) * ratio), replace=False)
+        return x[indices], y[indices], np.delete(x, indices, axis=0), np.delete(y, indices)
 
+    def softmax(self, x):
+        """
+        The softmax function
+        """
+        return np.exp(x) / np.sum(np.exp(x), axis=-1, keepdims=True)
 
     def loss(self, x, y):
         """
@@ -87,8 +94,7 @@ class LogisticRegression(object):
         #
         # YOUR CODE HERE
         #
-        return -1
-
+        return -np.sum([np.log(self.softmax(np.dot(x, self.theta))[i][y[i]]) for i in range(len(y))]) / len(y)
 
     def conditional_log_prob(self, label, datapoint):
         """
@@ -97,8 +103,7 @@ class LogisticRegression(object):
         #
         # YOUR CODE HERE
         #
-        return -1
-
+        return np.log(self.softmax(np.dot(datapoint, self.theta))[label])
 
     def compute_gradient(self, minibatch):
         """
@@ -107,13 +112,13 @@ class LogisticRegression(object):
         #
         # YOUR CODE HERE
         #
-        pass
-
+        self.gradient = np.dot(self.x[minibatch].T, self.softmax(
+            np.dot(self.x[minibatch], self.theta)) - np.eye(self.CLASSES)[self.y[minibatch]]) / len(minibatch)
 
     def fit(self, x, y):
         """
         Performs Mini-batch Gradient Descent.
-        
+
         :param      x:      Training dataset (features)
         :param      y:      The list of training labels
         """
@@ -122,18 +127,39 @@ class LogisticRegression(object):
         self.init_plot(self.FEATURES)
 
         start = time.time()
-        
+
         #
         # YOUR CODE HERE
         #
+        self.init_plot(1)
+        self.losses = []
+        self.losses.append(self.loss(self.x, self.y))
+        self.update_plot(self.losses[-1])
+
+        patience = 0
+        best_loss = float('inf')
+        while patience < self.PATIENCE:
+            indices = np.random.choice(
+                self.TRAINING_DATAPOINTS, self.MINIBATCH_SIZE, replace=False)
+            self.compute_gradient(indices)
+            self.theta -= self.LEARNING_RATE * self.gradient
+
+            loss = self.loss(self.xv, self.yv)
+            self.losses.append(loss)
+            self.update_plot(loss)
+
+            if loss < best_loss:
+                best_loss = loss
+                patience = 0
+            else:
+                patience += 1
 
         print(f"Training finished in {time.time() - start} seconds")
-
 
     def get_log_probs(self, x):
         """
         Get the log-probabilities for all labels for the datapoint `x`
-        
+
         :param      x:    a datapoint
         """
         if self.FEATURES - len(x) == 1:
@@ -141,7 +167,6 @@ class LogisticRegression(object):
         else:
             raise ValueError("Wrong number of features provided!")
         return [self.conditional_log_prob(c, x) for c in range(self.CLASSES)]
-
 
     def classify_datapoints(self, x, y):
         """
@@ -169,10 +194,10 @@ class LogisticRegression(object):
                 print('Predicted class: {:2d} '.format(i), end='')
             else:
                 print('                 {:2d} '.format(i), end='')
-            print(' '.join('{:>8.3f}'.format(confusion[i][j]) for j in range(self.CLASSES)))
+            print(' '.join('{:>8.3f}'.format(
+                confusion[i][j]) for j in range(self.CLASSES)))
         acc = sum([confusion[i][i] for i in range(self.CLASSES)]) / no_of_dp
         print("Accuracy: {0:.2f}%".format(acc * 100))
-
 
     def print_result(self):
         print(' '.join(['{:.2f}'.format(x) for x in self.theta]))
@@ -200,7 +225,6 @@ class LogisticRegression(object):
         plt.draw()
         plt.pause(1e-20)
 
-
     def init_plot(self, num_axes):
         """
         num_axes is the number of variables that should be plotted.
@@ -209,12 +233,13 @@ class LogisticRegression(object):
         self.val = []
         plt.ion()
         self.axes = plt.gca()
-        self.lines =[]
+        self.lines = []
 
         for i in range(num_axes):
             self.val.append([])
             self.lines.append([])
-            self.lines[i], = self.axes.plot([], self.val[0], '-', c=[random.random() for _ in range(3)], linewidth=1.5, markersize=4)
+            self.lines[i], = self.axes.plot(
+                [], self.val[0], '-', c=[random.random() for _ in range(3)], linewidth=1.5, markersize=4)
 
 
 def main():
@@ -222,9 +247,12 @@ def main():
     Tests the code on a toy example.
     """
     def get_label(dp):
-        if dp[0] == 1: return 2
-        elif dp[2] == 1: return 1
-        else: return 0
+        if dp[0] == 1:
+            return 2
+        elif dp[2] == 1:
+            return 1
+        else:
+            return 0
 
     from itertools import product
     x = np.array(list(product([0, 1], repeat=6)))
@@ -240,7 +268,6 @@ def main():
     b = LogisticRegression()
     b.fit(x[ind][:-20], y[ind][:-20])
     b.classify_datapoints(x[ind][-20:], y[ind][-20:])
-
 
 
 if __name__ == '__main__':
