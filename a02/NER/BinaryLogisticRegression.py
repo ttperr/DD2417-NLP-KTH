@@ -18,8 +18,8 @@ class BinaryLogisticRegression(object):
 
     #  ------------- Hyperparameters ------------------ #
 
-    LEARNING_RATE = 0.01  # The learning rate.
-    CONVERGENCE_MARGIN = 0.001  # The convergence criterion.
+    LEARNING_RATE = 0.04  # The learning rate.
+    CONVERGENCE_MARGIN = 0.01  # The convergence criterion.
     # Maximal number of passes through the datapoints in stochastic gradient descent.
     MAX_ITERATIONS = 100
     # Minibatch size (only for minibatch gradient descent)
@@ -188,6 +188,15 @@ class BinaryLogisticRegression(object):
                 print('                 {:2d} '.format(i), end='')
             print(' '.join('{:>8.3f}'.format(
                 confusion[i][j]) for j in range(2)))
+
+        print('Accuracy: {:.2f}%'.format(
+            100 * np.trace(confusion) / np.sum(confusion)))
+
+        print('Precision: {:.2f}%'.format(
+            100 * confusion[1][1] / np.sum(confusion[1])))
+
+        print('Recall: {:.2f}%'.format(
+            100 * confusion[1][1] / np.sum(confusion[:, 1])))
 
     def print_result(self):
         print(' '.join(['{:.2f}'.format(x) for x in self.theta]))
