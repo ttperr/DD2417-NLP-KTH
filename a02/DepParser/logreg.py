@@ -266,6 +266,7 @@ def main():
     np.random.shuffle(ind)
 
     b = LogisticRegression()
+    b.MINIBATCH_SIZE = 3
     b.fit(x[ind][:-20], y[ind][:-20])
     b.classify_datapoints(x[ind][-20:], y[ind][-20:])
 
