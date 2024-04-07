@@ -75,17 +75,18 @@ class LogisticRegression(object):
         @param y        An array of length N containing labels for the datapoints
         @param ratio    Specifies how much of the given data should be used for training
         """
-        #
-        # YOUR CODE HERE
-        #
-        indices = np.random.choice(len(x), int(len(x) * ratio), replace=False)
-        return x[indices], y[indices], np.delete(x, indices, axis=0), np.delete(y, indices)
+        indices = np.random.permutation(len(x))
+        split = int(ratio * len(x))
+        x_train, x_val = x[indices[:split]], x[indices[split:]]
+        y_train, y_val = y[indices[:split]], y[indices[split:]]
+        return x_train, y_train, x_val, y_val
 
     def softmax(self, x):
         """
         The softmax function
         """
-        return np.exp(x) / np.sum(np.exp(x), axis=-1, keepdims=True)
+        exp = np.exp(x)
+        return exp / np.sum(exp, axis=-1, keepdims=True)
 
     def loss(self, x, y):
         """
@@ -94,7 +95,7 @@ class LogisticRegression(object):
         #
         # YOUR CODE HERE
         #
-        return -np.sum([np.log(self.softmax(np.dot(x, self.theta))[i][y[i]]) for i in range(len(y))]) / len(y)
+        return -np.mean(np.log(self.softmax(np.dot(x, self.theta))[np.arange(len(y)), y]))
 
     def conditional_log_prob(self, label, datapoint):
         """
@@ -132,8 +133,10 @@ class LogisticRegression(object):
         # YOUR CODE HERE
         #
         self.init_plot(1)
+        print("Training started...")
         self.losses = []
-        self.losses.append(self.loss(self.x, self.y))
+        self.losses.append(self.loss(self.xv, self.yv))
+        print(f"Initial loss: {self.losses[-1]}")
         self.update_plot(self.losses[-1])
 
         patience = 0
