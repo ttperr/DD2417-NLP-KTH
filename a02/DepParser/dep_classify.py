@@ -70,8 +70,8 @@ class TreeConstructor:
                         is_correct = False
                 correct_sentences += is_correct
         print(
-            f'Sentence-level accuracy: {correct_sentences / total_sentences * 100:.2f}')
-        print(f'UAS accuracy: {uas_correct / uas_total * 100:.2f}')
+            f'Sentence-level accuracy: {correct_sentences / total_sentences * 100:.2f}%')
+        print(f'UAS accuracy: {uas_correct / uas_total * 100:.2f}%')
 
 
 if __name__ == '__main__':
@@ -87,6 +87,7 @@ if __name__ == '__main__':
         # if model exists, load from file
         print("Loading existing model...")
         lr = pickle.load(open('model.pkl', 'rb'))
+        ds.to_arrays()
     else:
         # train model using minibatch GD
         lr = LogisticRegression()
