@@ -24,6 +24,9 @@ class TreeConstructor:
         :param      tags:   The POS-tags for the words of the sentence
         :param      ds:     Training dataset instance having the feature maps
         """
+        #
+        # YOUR CODE HERE
+        #
         i, stack, pred_tree = 0, [], [0] * len(words)
         move_log = []
 
@@ -48,6 +51,9 @@ class TreeConstructor:
         :param      test_file:  The CONLL-U test file
         :param      ds:         Training dataset instance having the feature maps
         """
+        #
+        # YOUR CODE HERE
+        #
         correct_sentences = 0
         total_sentences = 0
         uas_total = 0
