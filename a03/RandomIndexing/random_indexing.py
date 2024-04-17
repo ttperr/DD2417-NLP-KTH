@@ -114,12 +114,12 @@ class RandomIndexing(object):
 
     def build_vocabulary(self):
         # YOUR CODE HERE
-        self.write_vocabulary()
-
-        text_gen = self.text_gen()
-        for line in text_gen:
+        for line in self.text_gen():
             for word in line:
                 self.__vocab.add(word)
+
+        self.write_vocabulary()
+        self.__i2w = list(self.__vocab)
 
     ##
     # @brief      Get the size of the vocabulary
@@ -176,7 +176,22 @@ class RandomIndexing(object):
 
     def create_word_vectors(self):
         # YOUR CODE HERE
-        pass
+        self.__cv = {}
+        self.__rv = {}
+
+        for word in self.__vocab:
+            self.__cv[word] = np.zeros(self.__dim)
+            self.__rv[word] = np.zeros(self.__dim)
+            values = np.random.choice(self.__non_zero_values, self.__non_zero)
+            indices = np.random.choice(
+                self.__dim, self.__non_zero, replace=False)
+            self.__rv[word][indices] = values
+
+        for line in self.text_gen():
+            for i in range(len(line)):
+                for j in range(i - self.__lws, i + self.__rws + 1):
+                    if j != i and 0 <= j < len(line):
+                        self.__cv[line[i]] += self.__rv[line[j]]
 
     ##
     # @brief      Function returning k nearest neighbors with distances for each word in `words`
@@ -207,7 +222,11 @@ class RandomIndexing(object):
 
     def find_nearest(self, words, k=5, metric='cosine'):
         # YOUR CODE HERE
-        return [None]
+        X = np.array([self.__cv[word] for word in words])
+        nbrs = NearestNeighbors(n_neighbors=k, metric=metric)
+        nbrs.fit(np.array(list(self.__cv.values())))
+        kneighbors = nbrs.kneighbors(X)
+        return [[(self.__i2w[neighbor], round(distance, 3)) for distance, neighbor in zip(distances, neighbors)] for distances, neighbors in zip(kneighbors[0], kneighbors[1])]
 
     ##
     # @brief      Returns a vector for the word obtained after Random Indexing is finished
@@ -219,7 +238,7 @@ class RandomIndexing(object):
 
     def get_word_vector(self, word):
         # YOUR CODE HERE
-        return None
+        return self.__cv[word] if word in self.__cv else None
 
     ##
     # @brief      Checks if the vocabulary is written as a text file
@@ -300,7 +319,12 @@ class RandomIndexing(object):
         print("PRESS q FOR EXIT")
         text = input('> ')
         while text != 'q':
-            text = text.split()
+            if ', ' in text:
+                text = text.split(', ')
+            elif ',' in text:
+                text = text.split(',')
+            else:
+                text = text.split()
             neighbors = self.find_nearest(text)
 
             for w, n in zip(text, neighbors):

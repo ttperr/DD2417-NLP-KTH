@@ -1,2 +1,2 @@
 #! /bin/sh
-python random_indexing.py
+python3 random_indexing.py
