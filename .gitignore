@@ -341,3 +341,5 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm,macos,visualstudiocode
 
 model.pkl
+en.vectors.xz
+news.2010.en.shuffled
