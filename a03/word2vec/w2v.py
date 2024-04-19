@@ -116,7 +116,37 @@ class Word2Vec(object):
         #
         # REPLACE WITH YOUR CODE
         #
-        return [], []
+        self.__w2i = {}
+        self.__i2w = []
+        self.__V = 0
+        self.__unigram = {}
+        self.__unigram_corrected = {}
+        focus, context = [], []
+
+        for line in self.text_gen():
+            for word in line:
+                if word not in self.__w2i:
+                    self.__w2i[word] = self.__V
+                    self.__i2w.append(word)
+                    self.__V += 1
+                    self.__unigram[word] = 1
+                else:
+                    self.__unigram[word] += 1
+
+            for i, word in enumerate(line):
+                focus.append(self.__w2i[word])
+                context.append(self.get_context(line, i))
+
+        self.__unigram_sum = sum(self.__unigram.values())
+        self.__unigram = {k: v / self.__unigram_sum for k,
+                          v in self.__unigram.items()}
+        self.__unigram_corrected = {k: v**0.75 for k,
+                                    v in self.__unigram.items()}
+        self.__unigram_sum_corrected = sum(self.__unigram_corrected.values())
+        self.__unigram_corrected = {
+            k: v / self.__unigram_sum_corrected for k, v in self.__unigram_corrected.items()}
+
+        return focus, context
 
     def sigmoid(self, x):
         """
@@ -139,7 +169,25 @@ class Word2Vec(object):
         #
         # REPLACE WITH YOUR CODE
         #
-        return []
+        taboo = True
+        while taboo:
+            if self.__use_corrected:
+                neg_samples = np.random.choice(
+                    self.__dist_unigram_corrected, number, p=self.__dist_unigram_corrected_weights)
+            else:
+                neg_samples = np.random.choice(
+                    self.__dist_unigram, number, p=self.__dist_unigram_weights)
+            if self.__i2w[pos] not in neg_samples and self.__i2w[xb] not in neg_samples:
+                taboo = False
+        neg_samples = [self.__w2i[word] for word in neg_samples]
+        return neg_samples
+
+    def build_distributions(self):
+        self.__dist_unigram_corrected = list(self.__unigram_corrected.keys())
+        self.__dist_unigram_corrected_weights = list(
+            self.__unigram_corrected.values())
+        self.__dist_unigram = list(self.__unigram.keys())
+        self.__dist_unigram_weights = list(self.__unigram.values())
 
     def train(self):
         """
@@ -150,15 +198,58 @@ class Word2Vec(object):
         print("Dataset contains {} datapoints".format(N))
 
         # REPLACE WITH YOUR RANDOM INITIALIZATION
-        self.__W = np.zeros((100, 50))
-        self.__U = np.zeros((100, 50))
+        self.__W = np.random.rand(N, self.__H)
+        self.__U = np.random.rand(N, self.__H)
+
+        processed_words = 0
+        self.build_distributions()
 
         for ep in range(self.__epochs):
             for i in tqdm(range(N)):
                 #
                 # YOUR CODE HERE
                 #
-                pass
+                focus_word_idx = x[i]
+                pos_samples_indices = t[i]
+                neg_samples_indices = []
+                for pos_sample_idx in pos_samples_indices:
+                    neg_samples_indices.extend(self.negative_sampling(
+                        self.__nsample, focus_word_idx, pos_sample_idx))
+
+                # Update the weights
+                focus_gradient = np.zeros(self.__H)
+                pos_gradients = np.zeros((len(pos_samples_indices), self.__H))
+                neg_gradients = np.zeros((len(neg_samples_indices), self.__H))
+
+                focus_vec = self.__W[focus_word_idx]
+                pos_mat = self.__U[pos_samples_indices]
+                neg_mat = self.__U[neg_samples_indices]
+
+                for i in range(len(pos_samples_indices)):
+                    pos_vec = pos_mat[i]
+                    focus_gradient += (self.sigmoid(np.dot(pos_vec,
+                                       focus_vec)) - 1) * pos_vec
+                    pos_gradients[i] += (self.sigmoid(np.dot(pos_vec,
+                                         focus_vec)) - 1) * focus_vec
+
+                for i in range(len(neg_samples_indices)):
+                    neg_vec = neg_mat[i]
+                    focus_gradient += self.sigmoid(
+                        np.dot(neg_vec, focus_vec)) * neg_vec
+                    neg_gradients[i] += self.sigmoid(
+                        np.dot(neg_vec, focus_vec)) * focus_vec
+
+                self.__W[focus_word_idx] -= self.__lr * focus_gradient
+                self.__U[pos_samples_indices] -= self.__lr * pos_gradients
+                self.__U[neg_samples_indices] -= self.__lr * neg_gradients
+
+                processed_words += 1
+
+                if self.__use_lr_scheduling:
+                    self.__lr = self.__init_lr * 1e-4 if self.__lr < self.__init_lr * 1e-4 else self.__lr * (
+                        1 - processed_words / (self.__epochs * N + 1))
+
+        return self.__W
 
     def find_nearest(self, words, k=5, metric='cosine'):
         """
@@ -189,11 +280,13 @@ class Word2Vec(object):
         #
         # REPLACE WITH YOUR CODE
         #
-        X = np.array([self.__cv[word] for word in words])
-        nbrs = NearestNeighbors(n_neighbors=k, metric=metric)
-        nbrs.fit(np.array(list(self.__cv.values())))
-        kneighbors = nbrs.kneighbors(X)
-        return [[(self.__i2w[neighbor], round(distance, 3)) for distance, neighbor in zip(distances, neighbors)] for distances, neighbors in zip(kneighbors[0], kneighbors[1])]
+        if self.__nbrs is None:
+            self.__nbrs = NearestNeighbors(
+                n_neighbors=k, metric=metric).fit(self.__W)
+        indices = [self.__w2i[word] for word in words]
+        kneighbors = self.__nbrs.kneighbors(self.__W[indices])
+        return [[(self.__i2w[idx], dist) for idx, dist in zip(
+            kneighbors[1][i], kneighbors[0][i])] for i in range(len(words))]
 
     def write_to_file(self):
         """
