@@ -343,3 +343,4 @@ pyrightconfig.json
 model.pkl
 en.vectors.xz
 news.2010.en.shuffled
+*.vectors

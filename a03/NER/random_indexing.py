@@ -307,10 +307,15 @@ class RandomIndexing(object):
             round(time.time() - start, 2)))
 
         # Write the word vectors to a file for future use of NER
-        with open('ri.vectors', 'w') as f:
-            f.write('{} {}\n'.format(len(self.__cv), self.__dim))
-            for word, vec in self.__cv.items():
-                f.write('{} {}\n'.format(word, ' '.join(map(str, vec))))
+        try:
+            with open("ri.vectors", 'w') as f:
+                W = np.array([self.__cv[w] for w in self.__i2w])
+                f.write("{} {}\n".format(W.shape[0], W.shape[1]))
+                for i, w in enumerate(self.__i2w):
+                    f.write(
+                        w + " " + " ".join(map(lambda x: "{0:.6f}".format(x), W[i, :])) + "\n")
+        except:
+            print("Error: failing to write model to the file")
 
         spinner.succeed(
             text="Execution is finished! Please enter words of interest (separated by space):")
