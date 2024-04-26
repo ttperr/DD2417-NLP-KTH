@@ -13,6 +13,8 @@ from sklearn.neighbors import NearestNeighbors
 """
 This file is part of the computer assignments for the course DD2418 Language engineering at KTH.
 """
+
+
 class GloveTester:
 
     # Mapping from words to IDs.
@@ -24,14 +26,13 @@ class GloveTester:
     # Dimension of word vectors.
     dimension = 50
 
-    # Mapping from word IDs to (focus) word vectors. (called w_vector 
+    # Mapping from word IDs to (focus) word vectors. (called w_vector
     # to be consistent with the notation in the Glove paper).
     w_vector = defaultdict(lambda: None)
- 
+
     # Neighbours
     nbrs = None
 
-    
     def interact(self):
         text = input('> ')
         while text != 'exit':
@@ -41,28 +42,27 @@ class GloveTester:
                 print("Neighbors for {}: {}".format(w, n))
             text = input('> ')
 
-            
-    def find_nearest(self, words, metric='cosine'):
+    def find_nearest(self, words, k=5, metric='cosine'):
         """
         Function returning k nearest neighbors with distances for each word in `words`
-        
+
         We suggest using nearest neighbors implementation from scikit-learn 
         (https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.NearestNeighbors.html). Check
         carefully their documentation regarding the parameters passed to the algorithm.
-    
+
         To describe how the function operates, imagine you want to find 5 nearest neighbors for the words
         "Harry" and "Potter" using some distance metric `m`. 
         For that you would need to call `self.find_nearest(["Harry", "Potter"], k=5, metric='m')`.
         The output of the function would then be the following list of lists of tuples (LLT)
         (all words and distances are just example values):
-    
+
         [[('Harry', 0.0), ('Hagrid', 0.07), ('Snape', 0.08), ('Dumbledore', 0.08), ('Hermione', 0.09)],
          [('Potter', 0.0), ('quickly', 0.21), ('asked', 0.22), ('lied', 0.23), ('okay', 0.24)]]
-        
+
         The i-th element of the LLT would correspond to k nearest neighbors for the i-th word in the `words`
         list, provided as an argument. Each tuple contains a word and a similarity/distance metric.
         The tuples are sorted either by descending similarity or by ascending distance.
-        
+
         :param      words:   Words for the nearest neighbors to be found
         :type       words:   list
         :param      metric:  The similarity/distance metric
@@ -71,11 +71,22 @@ class GloveTester:
         #
         # REPLACE WITH YOUR CODE
         #
-        return []
-
-
+        X = []
+        for w in words:
+            if w in self.word2id:
+                X.append(self.w_vector[self.word2id[w]])
+            else:
+                X.append([0] * self.dimension)
+        X = np.array(X)
+        distances, indices = self.nbrs.kneighbors(X)
+        neighbors = []
+        for i in range(len(words)):
+            neighbors.append([(self.id2word[idx], dist)
+                             for idx, dist in zip(indices[i], distances[i])])
+        return neighbors
 
     # Reads the vectors from file
+
     def read_vectors(self, fname):
         i = 0
         with open(fname) as f:
@@ -88,23 +99,22 @@ class GloveTester:
                 self.w_vector[i] = vec
                 i += 1
         f.close()
-        self.dimension = len( self.w_vector[0] )
+        self.dimension = len(self.w_vector[0])
 
-       
-def main() :
+
+def main():
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Glove trainer')
-    parser.add_argument('--file', '-f', type=str,  required=True, help='The files used in the training.')
+    parser.add_argument('--file', '-f', type=str,  required=True,
+                        help='The files used in the training.')
 
-    arguments = parser.parse_args()  
-    
+    arguments = parser.parse_args()
+
     gt = GloveTester()
-    gt.read_vectors( arguments.file )
+    gt.read_vectors(arguments.file)
     gt.interact()
 
 
-        
-if __name__ == '__main__' :
-    main()    
-
+if __name__ == '__main__':
+    main()
