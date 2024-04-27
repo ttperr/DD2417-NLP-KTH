@@ -71,19 +71,20 @@ class GloveTester:
         #
         # REPLACE WITH YOUR CODE
         #
+
         X = []
-        for w in words:
-            if w in self.word2id:
-                X.append(self.w_vector[self.word2id[w]])
+        for word in words:
+            if word in self.word2id:
+                X.append(self.w_vector[self.word2id[word]])
             else:
-                X.append([0] * self.dimension)
+                print("Word not found: {}".format(word))
+                return []
         X = np.array(X)
-        distances, indices = self.nbrs.kneighbors(X)
-        neighbors = []
-        for i in range(len(words)):
-            neighbors.append([(self.id2word[idx], dist)
-                             for idx, dist in zip(indices[i], distances[i])])
-        return neighbors
+        self.nbrs = NearestNeighbors(
+            n_neighbors=k, metric=metric)
+        self.nbrs.fit(np.array(list(self.w_vector.values())))
+        kneighbors = self.nbrs.kneighbors(X)
+        return [[(self.id2word[neighbor], round(distance, 3)) for distance, neighbor in zip(distances, neighbors)] for distances, neighbors in zip(kneighbors[0], kneighbors[1])]
 
     # Reads the vectors from file
 

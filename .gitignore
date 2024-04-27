@@ -344,3 +344,5 @@ model.pkl
 en.vectors.xz
 news.2010.en.shuffled
 *.vectors
+temp__.txt
+vectors.txt

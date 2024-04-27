@@ -189,8 +189,9 @@ class Glove:
         loss = 0
         for i in self.X.keys():
             for j in self.X[i].keys():
-                loss += self.f(self.X[i][j]) * (self.w_vector[i].T.dot(
-                    self.w_tilde_vector[j]) - math.log(self.X[i][j])) ** 2
+                temp = (self.w_vector[i].T.dot(
+                    self.w_tilde_vector[j]) - math.log(self.X[i][j]))
+                loss += self.f(self.X[i][j]) * temp * temp
         return 0.5 * loss
 
     def compute_gradient(self, i, j):
@@ -230,15 +231,16 @@ class Glove:
             self.w_vector[i] -= self.learning_rate * wi_vector_grad
             self.w_tilde_vector[j] -= self.learning_rate * wj_tilde_vector_grad
 
-            loss = self.loss()
-            if loss < best_loss:
-                best_loss = loss
-                self.patience = 5
-            else:
-                self.patience -= 1
+            if iterations % 100000 == 0:
+                loss = self.loss()
+                if loss < best_loss:
+                    best_loss = loss
+                    self.patience = 5
+                else:
+                    self.patience -= 1
 
-            print('\nIteration', iterations, 'Loss:', loss,
-                  'Patience:', self.patience, end='\r')
+                print('\nIteration', iterations, 'Loss:', loss,
+                      'Patience:', self.patience, end='\r')
 
             if iterations % 1000000 == 0:
                 self.write_word_vectors_to_file(self.outputfile)
