@@ -19,7 +19,7 @@ class BinaryLogisticRegression(object):
     #  ------------- Hyperparameters ------------------ #
 
     LEARNING_RATE = 0.01  # The learning rate.
-    CONVERGENCE_MARGIN = 0.005  # The convergence criterion.
+    CONVERGENCE_MARGIN = 0.004  # The convergence criterion.
     # Maximal number of passes through the datapoints in stochastic gradient descent.
     MAX_ITERATIONS = 800
     # Minibatch size (only for minibatch gradient descent)
@@ -62,6 +62,9 @@ class BinaryLogisticRegression(object):
             # The current gradient.
             self.gradient = np.zeros(self.FEATURES)
 
+            self.w_n = np.sum(self.y) / self.DATAPOINTS
+            self.w_p = 1 - self.w_n
+
     # ----------------------------------------------------------------------
 
     def sigmoid(self, z):
@@ -87,17 +90,17 @@ class BinaryLogisticRegression(object):
 
         # YOUR CODE HERE
         self.gradient = np.dot(self.x.T, self.sigmoid(
-            np.dot(self.theta, self.x.T)) - self.y) / self.DATAPOINTS
+            np.dot(self.theta, self.x.T)) * (self.w_p * self.y + self.w_n * (1 - self.y)) - self.w_p * self.y) / self.DATAPOINTS
 
     def compute_gradient_minibatch(self, minibatch):
         """
         Computes the gradient based on a minibatch
         (used for minibatch gradient descent).
         """
-        w_p = 1 - (np.sum(self.y[minibatch]) / self.MINIBATCH_SIZE)
+
         # YOUR CODE HERE
         self.gradient = np.dot(self.x[minibatch].T, self.sigmoid(
-            np.dot(self.theta, self.x[minibatch].T)) - w_p * self.y[minibatch]) / self.MINIBATCH_SIZE
+            np.dot(self.theta, self.x[minibatch].T)) * (self.w_p * self.y[minibatch] + self.w_n * (1 - self.y[minibatch])) - self.w_p * self.y[minibatch]) / self.MINIBATCH_SIZE
 
     def compute_gradient(self, datapoint):
         """
@@ -107,7 +110,7 @@ class BinaryLogisticRegression(object):
 
         # YOUR CODE HERE
         self.gradient = np.dot(self.x[datapoint].T, self.sigmoid(
-            np.dot(self.theta, self.x[datapoint].T)) - self.y[datapoint])
+            np.dot(self.theta, self.x[datapoint].T)) * (self.w_p * self.y[datapoint] + self.w_n * (1 - self.y[datapoint])) - self.w_p * self.y[datapoint])
 
     def stochastic_fit(self):
         """
