@@ -204,7 +204,7 @@ class Word2Vec(object):
         processed_words = 0
         self.build_distributions()
 
-        for ep in range(self.__epochs):
+        for _ in range(self.__epochs):
             for i in tqdm(range(N)):
                 #
                 # YOUR CODE HERE

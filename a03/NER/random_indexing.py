@@ -310,6 +310,8 @@ class RandomIndexing(object):
         try:
             with open("ri.vectors", 'w') as f:
                 W = np.array([self.__cv[w] for w in self.__i2w])
+                # Normalize the vectors
+                # W = W / np.linalg.norm(W, axis=1)[:, None]
                 f.write("{} {}\n".format(W.shape[0], W.shape[1]))
                 for i, w in enumerate(self.__i2w):
                     f.write(
